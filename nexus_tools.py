@@ -3,7 +3,7 @@ bl_info = {
 	"name": "Nexus tools",
 	"author": "nexus studio",
 	"version": (0,0,1),
-	"blender": (2,77),
+	"blender": (2,78),
 	"location": "T > Nexus Tools",
 	"description": "Explode meshes",
 	"warning": "",
@@ -15,13 +15,60 @@ import bpy
 import mathutils
 from bpy.props import *
 
-def calc(self):
-	centerPoint = mathutils.Vector((0,0,0))
+def calc():
 	for ob in bpy.data.objects:
-		centerPoint += ob.location
+		if ob.type == "MESH":
+			pos = ob.location
+			if pos.x > centerPoint.x:
+				pos.x += offsetX
+			else:
+				pos.x -= offsetX
+	# 	centerPoint += ob.location
+	for ob in bpy.data.objects:
+		ob.location.x += offsetX
 
-	centerPoint = centerPoint/len(bpy.data.objects)
+	# centerPoint = centerPoint/len(bpy.data.objects)
+	# bpy.ops.view3d.snap_cursor_to_selected()
+
+def explode_center():
+	for ob in bpy.data.objects:
+		if ob.type == "MESH":
+			ob.select = True
+	
 	bpy.ops.view3d.snap_cursor_to_selected()
+	print(1)
+
+	# centerPoint = mathutils.Vector((0,0,0))
+	# i = 0;
+	# for ob in bpy.data.objects:
+	# 	if ob.type == "MESH":
+	# 		centerPoint += ob.location
+	# 		i += 1
+
+	# centerPoint = centerPoint / i
+
+
+#class find center
+class OBJECT_OT_center(bpy.types.Operator):
+	bl_label = "Find center point between all meshes"
+	bl_idname = "object.explode_center"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	centerPoint = bpy.types.Scene.centerPoint = FloatVectorProperty(
+		name = "centerPoint",
+		default = (0.0, 0.0, 0.0),
+		description = "center point between all meshes"
+	)
+
+	@classmethod
+	def poll(cls, context):
+		return context.active_object is not None
+
+	def execute(self, context):
+		explode_center()
+
+		return {'FINISHED'}
+
 
 #class init explode
 class OBJECT_OT_InitExplode(bpy.types.Operator):
@@ -55,7 +102,7 @@ class OBJECT_OT_InitExplode(bpy.types.Operator):
 		return context.active_object is not None
 
 	def execute(self, context):
-		calc(self)
+		calc()
 
 		return {'FINISHED'}
 
@@ -77,22 +124,25 @@ class NexusToolsPanel(bpy.types.Panel):
 		box = layout.box()
 		box.label(text="Explode objects")
 		
+		box.operator("object.explode_center", text="Find center")
+		
 		col = box.column(align=True)
 		col.prop(scene, "explodeX")
 		col.prop(scene, "explodeY")
 		col.prop(scene, "explodeZ")
 
-		col.operator("object.calc", text="run")
 
 
 def register():
 	bpy.utils.register_class(NexusToolsPanel)
 	bpy.utils.register_class(OBJECT_OT_InitExplode)
+	bpy.utils.register_class(OBJECT_OT_center)
 
 
 def unregister():
 	bpy.utils.unregister_class(NexusToolsPanel)
 	bpy.utils.unregister_class(OBJECT_OT_InitExplode)
+	bpy.utils.unregister_class(OBJECT_OT_center)
 
 if __name__ == "__main__":
 	register()
