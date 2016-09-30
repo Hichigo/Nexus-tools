@@ -12,20 +12,23 @@ bl_info = {
 }
 
 import bpy
+import mathutils
 from bpy.props import *
 
+def calc(self):
+	centerPoint = mathutils.Vector((0,0,0))
+	for ob in bpy.data.objects:
+		centerPoint += ob.location
 
+	centerPoint = centerPoint/len(bpy.data.objects)
+	bpy.ops.view3d.snap_cursor_to_selected()
 
-#class panel
-class NexusToolsPanel(bpy.types.Panel):
-	"""Creates a Panel in the view3d context of the tools panel (key "T")"""
-	bl_label = "Nexus Tools"
-	bl_idname = "nexustoolsid"
-	bl_space_type = 'VIEW_3D'
-	bl_region_type = 'TOOLS'
-	bl_category = "Nexus Tools"
-	bl_context = "objectmode"
-	
+#class init explode
+class OBJECT_OT_InitExplode(bpy.types.Operator):
+	bl_label = "Calculate explode meshes"
+	bl_idname = "object.calc"
+	bl_options = {'REGISTER', 'UNDO'}
+
 	offsetX = bpy.types.Scene.explodeX = FloatProperty(
 		name = "X",
 		min = 0,
@@ -47,29 +50,49 @@ class NexusToolsPanel(bpy.types.Panel):
 		description = "Explode meshes by Z coordinate"
 	)
 
+	@classmethod
+	def poll(cls, context):
+		return context.active_object is not None
+
+	def execute(self, context):
+		calc(self)
+
+		return {'FINISHED'}
+
+
+#class panel
+class NexusToolsPanel(bpy.types.Panel):
+	"""Creates a Panel in the view3d context of the tools panel (key "T")"""
+	bl_label = "Nexus Tools"
+	bl_idname = "nexustoolsid"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'TOOLS'
+	bl_category = "Nexus Tools"
+	bl_context = "objectmode"
+	
 	def draw(self, context):
 		layout = self.layout
-		
+		scene = context.scene
+
 		box = layout.box()
-		
 		box.label(text="Explode objects")
 		
 		col = box.column(align=True)
-		col.prop(context.scene, "explodeX")
-		col.prop(context.scene, "explodeY")
-		col.prop(context.scene, "explodeZ")
+		col.prop(scene, "explodeX")
+		col.prop(scene, "explodeY")
+		col.prop(scene, "explodeZ")
 
-	def execute(self, context):
-		bpy.context.object.location.x += offsetX
+		col.operator("object.calc", text="run")
 
 
 def register():
-	bpy.utils.register_class(LayoutDemoPanel)
+	bpy.utils.register_class(NexusToolsPanel)
+	bpy.utils.register_class(OBJECT_OT_InitExplode)
 
 
 def unregister():
-	bpy.utils.unregister_class(LayoutDemoPanel)
-
+	bpy.utils.unregister_class(NexusToolsPanel)
+	bpy.utils.unregister_class(OBJECT_OT_InitExplode)
 
 if __name__ == "__main__":
 	register()
