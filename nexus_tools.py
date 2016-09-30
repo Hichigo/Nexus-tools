@@ -7,8 +7,8 @@ bl_info = {
 	"location": "T > Nexus Tools",
 	"description": "Explode meshes",
 	"warning": "",
-	"wiki_url": "",
-	"categoy": "Mesh"
+	"wiki_url": "None",
+	"category": "Mesh"
 }
 
 import bpy
@@ -31,12 +31,13 @@ def calc():
 	# bpy.ops.view3d.snap_cursor_to_selected()
 
 def explode_center():
+	bpy.ops.object.select_all(action='DESELECT')
 	for ob in bpy.data.objects:
 		if ob.type == "MESH":
 			ob.select = True
 	
 	bpy.ops.view3d.snap_cursor_to_selected()
-	print(1)
+	print(12)
 
 	# centerPoint = mathutils.Vector((0,0,0))
 	# i = 0;
