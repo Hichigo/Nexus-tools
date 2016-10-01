@@ -15,17 +15,18 @@ import bpy
 import mathutils
 from bpy.props import *
 
-def calc():
+def calc(self):
+	x = bpy.context.object.explodeX
 	for ob in bpy.data.objects:
 		if ob.type == "MESH":
 			pos = ob.location
-			if pos.x > centerPoint.x:
-				pos.x += offsetX
+			if pos.x > bpy.context.scene.cursor_location.x:
+				pos.x += x
 			else:
-				pos.x -= offsetX
+				pos.x -= x
 	# 	centerPoint += ob.location
-	for ob in bpy.data.objects:
-		ob.location.x += offsetX
+	# for ob in bpy.data.objects:
+	# 	ob.location.x += bpy.context.object.explodeX
 
 	# centerPoint = centerPoint/len(bpy.data.objects)
 	# bpy.ops.view3d.snap_cursor_to_selected()
@@ -55,7 +56,7 @@ class OBJECT_OT_center(bpy.types.Operator):
 	bl_idname = "object.explode_center"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	centerPoint = bpy.types.Scene.centerPoint = FloatVectorProperty(
+	centerPoint = bpy.types.Object.centerPoint = FloatVectorProperty(
 		name = "centerPoint",
 		default = (0.0, 0.0, 0.0),
 		description = "center point between all meshes"
@@ -63,9 +64,9 @@ class OBJECT_OT_center(bpy.types.Operator):
 
 	@classmethod
 	def poll(cls, context):
-		return context.active_object is not None
+		return context.mode == "OBJECT"
 
-	def execute(self, context):
+	def invoke(self, context, event):
 		explode_center()
 
 		return {'FINISHED'}
@@ -77,21 +78,21 @@ class OBJECT_OT_InitExplode(bpy.types.Operator):
 	bl_idname = "object.calc"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	offsetX = bpy.types.Scene.explodeX = FloatProperty(
+	offsetX = bpy.types.Object.explodeX = FloatProperty(
 		name = "X",
 		min = 0,
 		default = 0.0,
 		description = "Explode meshes by X coordinate"
 	)
 	
-	offsetY = bpy.types.Scene.explodeY = FloatProperty(
+	offsetY = bpy.types.Object.explodeY = FloatProperty(
 		name = "Y",
 		min = 0,
 		default = 0.0,
 		description = "Explode meshes by Y coordinate"
 	)
 	
-	offsetZ = bpy.types.Scene.explodeZ = FloatProperty(
+	offsetZ = bpy.types.Object.explodeZ = FloatProperty(
 		name = "Z",
 		min = 0,
 		default = 0.0,
@@ -100,11 +101,10 @@ class OBJECT_OT_InitExplode(bpy.types.Operator):
 
 	@classmethod
 	def poll(cls, context):
-		return context.active_object is not None
+		return context.mode == "OBJECT"
 
-	def execute(self, context):
-		calc()
-
+	def invoke(self, context, event):
+		calc(self)
 		return {'FINISHED'}
 
 
@@ -120,7 +120,7 @@ class NexusToolsPanel(bpy.types.Panel):
 	
 	def draw(self, context):
 		layout = self.layout
-		scene = context.scene
+		obj = context.object
 
 		box = layout.box()
 		box.label(text="Explode objects")
@@ -128,10 +128,11 @@ class NexusToolsPanel(bpy.types.Panel):
 		box.operator("object.explode_center", text="Find center")
 		
 		col = box.column(align=True)
-		col.prop(scene, "explodeX")
-		col.prop(scene, "explodeY")
-		col.prop(scene, "explodeZ")
+		col.prop(obj, "explodeX")
+		col.prop(obj, "explodeY")
+		col.prop(obj, "explodeZ")
 
+		box.operator("object.calc", text="Explode objects")
 
 
 def register():
