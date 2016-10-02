@@ -16,14 +16,14 @@ import mathutils
 from bpy.props import *
 
 
-def calc(self):
-	x = bpy.context.object.explodeX
-	y = bpy.context.object.explodeY
-	z = bpy.context.object.explodeZ
+def explode(self):
+	x = bpy.context.scene.explodeX
+	y = bpy.context.scene.explodeY
+	z = bpy.context.scene.explodeZ
 	for ob in bpy.data.objects:
 		if ob.type == "MESH":
 			pos = ob.location
-			ob.normal_location = ob.location.xyz
+
 			if pos.x > bpy.context.scene.cursor_location.x:
 				pos.x += x
 			else:
@@ -39,23 +39,16 @@ def calc(self):
 			else:
 				pos.z -= z
 
-def explode_center():
+def find_center():
 	bpy.ops.object.select_all(action='DESELECT')
 	for ob in bpy.data.objects:
 		if ob.type == "MESH":
 			ob.select = True
+			ob.normal_location = ob.location
 	
 	bpy.ops.view3d.snap_cursor_to_selected()
 	print(12)
 
-	# centerPoint = mathutils.Vector((0,0,0))
-	# i = 0;
-	# for ob in bpy.data.objects:
-	# 	if ob.type == "MESH":
-	# 		centerPoint += ob.location
-	# 		i += 1
-
-	# centerPoint = centerPoint / i
 
 def return_pos():
 	for ob in bpy.data.objects:
@@ -64,29 +57,25 @@ def return_pos():
 
 
 #class find center
-class OBJECT_OT_center(bpy.types.Operator):
-	bl_label = "Find center point between all meshes"
-	bl_idname = "object.explode_center"
+class OBJECT_OT_find_center(bpy.types.Operator):
+	"""Find center and remember normal location objects"""
+	bl_label = "Find center and remember normal location objects"
+	bl_idname = "object.find_center"
 	bl_options = {'REGISTER', 'UNDO'}
-
-	centerPoint = bpy.types.Object.centerPoint = FloatVectorProperty(
-		name = "centerPoint",
-		default = (0.0, 0.0, 0.0),
-		description = "center point between all meshes"
-	)
 
 	@classmethod
 	def poll(cls, context):
 		return context.mode == "OBJECT"
 
 	def invoke(self, context, event):
-		explode_center()
+		find_center()
 
 		return {'FINISHED'}
 
 #class return position objects
 class OBJECT_OT_return_pos(bpy.types.Operator):
-	bl_label = "Find center point between all meshes"
+	"""Return object location to normal location"""
+	bl_label = "Return object location to normal location"
 	bl_idname = "object.return_pos"
 	bl_options = {'REGISTER', 'UNDO'}
 
@@ -106,26 +95,27 @@ class OBJECT_OT_return_pos(bpy.types.Operator):
 		return {'FINISHED'}
 
 #class init explode
-class OBJECT_OT_InitExplode(bpy.types.Operator):
+class OBJECT_OT_explode(bpy.types.Operator):
+	"""Calculate explode meshes"""
 	bl_label = "Calculate explode meshes"
-	bl_idname = "object.calc"
+	bl_idname = "object.explode"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	offsetX = bpy.types.Object.explodeX = FloatProperty(
+	offsetX = bpy.types.Scene.explodeX = FloatProperty(
 		name = "X",
 		min = 0,
 		default = 0.0,
 		description = "Explode meshes by X coordinate"
 	)
 	
-	offsetY = bpy.types.Object.explodeY = FloatProperty(
+	offsetY = bpy.types.Scene.explodeY = FloatProperty(
 		name = "Y",
 		min = 0,
 		default = 0.0,
 		description = "Explode meshes by Y coordinate"
 	)
 	
-	offsetZ = bpy.types.Object.explodeZ = FloatProperty(
+	offsetZ = bpy.types.Scene.explodeZ = FloatProperty(
 		name = "Z",
 		min = 0,
 		default = 0.0,
@@ -137,7 +127,7 @@ class OBJECT_OT_InitExplode(bpy.types.Operator):
 		return context.mode == "OBJECT"
 
 	def invoke(self, context, event):
-		calc(self)
+		explode(self)
 		return {'FINISHED'}
 
 
@@ -154,34 +144,35 @@ class NexusToolsPanel(bpy.types.Panel):
 	def draw(self, context):
 		layout = self.layout
 		obj = context.object
+		scene = context.scene
 
 		box = layout.box()
 		box.label(text="Explode objects")
 		
-		box.operator("object.explode_center", text="Find center")
+		box.operator("object.find_center", text="Find center")
 		
 		col = box.column(align=True)
-		col.prop(obj, "explodeX")
-		col.prop(obj, "explodeY")
-		col.prop(obj, "explodeZ")
+		col.prop(scene, "explodeX")
+		col.prop(scene, "explodeY")
+		col.prop(scene, "explodeZ")
 
 		col = box.column(align=True)
-		col.operator("object.calc", text="Explode objects")
+		col.operator("object.explode", text="Explode objects")
 		col.operator("object.return_pos", text="Return objects")
 
 		# box.prop(obj, "location", text="Transform")
 
 def register():
 	bpy.utils.register_class(NexusToolsPanel)
-	bpy.utils.register_class(OBJECT_OT_InitExplode)
-	bpy.utils.register_class(OBJECT_OT_center)
+	bpy.utils.register_class(OBJECT_OT_explode)
+	bpy.utils.register_class(OBJECT_OT_find_center)
 	bpy.utils.register_class(OBJECT_OT_return_pos)
 
 
 def unregister():
 	bpy.utils.unregister_class(NexusToolsPanel)
-	bpy.utils.unregister_class(OBJECT_OT_InitExplode)
-	bpy.utils.unregister_class(OBJECT_OT_center)
+	bpy.utils.unregister_class(OBJECT_OT_explode)
+	bpy.utils.unregister_class(OBJECT_OT_find_center)
 	bpy.utils.unregister_class(OBJECT_OT_return_pos)
 
 if __name__ == "__main__":
