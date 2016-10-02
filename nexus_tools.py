@@ -12,6 +12,7 @@ bl_info = {
 }
 
 import bpy
+from math import fabs
 import mathutils
 from bpy.props import *
 
@@ -25,29 +26,52 @@ def explode(self):
 			pos = ob.location
 
 			if pos.x > bpy.context.scene.cursor_location.x:
-				pos.x += x
+				pos.x += x * ob.offsetK[0]
 			else:
-				pos.x -= x
+				pos.x -= x * ob.offsetK[0]
 
 			if pos.y > bpy.context.scene.cursor_location.y:
-				pos.y += y
+				pos.y += y * ob.offsetK[1]
 			else:
-				pos.y -= y
+				pos.y -= y * ob.offsetK[1]
 
 			if pos.z > bpy.context.scene.cursor_location.z:
-				pos.z += z
+				pos.z += z * ob.offsetK[2]
 			else:
-				pos.z -= z
+				pos.z -= z * ob.offsetK[2]
 
 def find_center():
 	bpy.ops.object.select_all(action='DESELECT')
+	cur = bpy.context.scene.cursor_location
+	cursorX = cur.x
+	cursorY = cur.y
+	cursorZ = cur.z
+
 	for ob in bpy.data.objects:
 		if ob.type == "MESH":
 			ob.select = True
 			ob.normal_location = ob.location
+			if ob.location.x > cursorX:
+				ob.offsetK[0] = fabs(ob.location.x / cursorX)
+			else:
+				ob.offsetK[0] = fabs(cursorX / ob.location.x)
+
+			if ob.location.y > cursorY:
+				ob.offsetK[1] = fabs(ob.location.y / cursorY)
+			else:
+				ob.offsetK[1] = fabs(cursorY / ob.location.y)
+
+			if ob.location.z > cursorZ:
+				ob.offsetK[2] = fabs(ob.location.z / cursorZ)
+			else:
+				ob.offsetK[2] = fabs(cursorZ / ob.location.z)
+
+			print(ob.name)
+			print(ob.offsetK[0])
+			print(ob.offsetK[1])
+			print(ob.offsetK[2])
 	
 	bpy.ops.view3d.snap_cursor_to_selected()
-	print(12)
 
 
 def return_pos():
@@ -55,6 +79,15 @@ def return_pos():
 		if ob.type == "MESH":
 			ob.location.xyz = ob.normal_location
 
+
+
+#class of explode data variable
+# class ExplodeData(bpy.types.PropertyGroup):
+# 	normal_location = bpy.props.FloatVectorProperty(
+# 		name = "normal_location",
+# 		default = (0.0, 0.0, 0.0),
+# 		description = "normal location before explode"
+# 	)
 
 #class find center
 class OBJECT_OT_find_center(bpy.types.Operator):
@@ -81,6 +114,13 @@ class OBJECT_OT_return_pos(bpy.types.Operator):
 
 	normal_location = bpy.types.Object.normal_location = FloatVectorProperty(
 		name = "normal_location",
+		default = (0.0, 0.0, 0.0),
+		description = "normal location before explode"
+	)
+
+	offsetK = bpy.types.Object.offsetK = FloatVectorProperty(
+		name = "normal_location",
+		min = 1.0,
 		default = (0.0, 0.0, 0.0),
 		description = "normal location before explode"
 	)
@@ -143,19 +183,20 @@ class NexusToolsPanel(bpy.types.Panel):
 		col.operator("object.explode", text="Explode objects")
 		col.operator("object.return_pos", text="Return objects")
 
-
 def register():
 	bpy.utils.register_class(NexusToolsPanel)
 	bpy.utils.register_class(OBJECT_OT_explode)
 	bpy.utils.register_class(OBJECT_OT_find_center)
 	bpy.utils.register_class(OBJECT_OT_return_pos)
-
+	# bpy.utils.register_class(ExplodeData)
 
 def unregister():
 	bpy.utils.unregister_class(NexusToolsPanel)
 	bpy.utils.unregister_class(OBJECT_OT_explode)
 	bpy.utils.unregister_class(OBJECT_OT_find_center)
 	bpy.utils.unregister_class(OBJECT_OT_return_pos)
+	# bpy.utils.unregister_class(ExplodeData)
 
 if __name__ == "__main__":
 	register()
+# bpy.types.Object.explode_data = bpy.props.PointerProperty(type=ExplodeData)
