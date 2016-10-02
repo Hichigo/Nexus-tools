@@ -12,7 +12,7 @@ bl_info = {
 }
 
 import bpy
-from math import fabs
+from math import fabs, sqrt
 import mathutils
 from bpy.props import *
 
@@ -51,17 +51,19 @@ def find_center():
 		if ob.type == "MESH":
 			ob.select = True
 			ob.normal_location = ob.location
-			if ob.location.x > cursorX:
+
+
+			if fabs(ob.location.x) > fabs(cursorX): #???
 				ob.offsetK[0] = fabs(ob.location.x / cursorX)
 			else:
 				ob.offsetK[0] = fabs(cursorX / ob.location.x)
 
-			if ob.location.y > cursorY:
+			if fabs(ob.location.y) > fabs(cursorY): #???
 				ob.offsetK[1] = fabs(ob.location.y / cursorY)
 			else:
 				ob.offsetK[1] = fabs(cursorY / ob.location.y)
 
-			if ob.location.z > cursorZ:
+			if fabs(ob.location.z) > fabs(cursorZ): #???
 				ob.offsetK[2] = fabs(ob.location.z / cursorZ)
 			else:
 				ob.offsetK[2] = fabs(cursorZ / ob.location.z)
@@ -71,7 +73,7 @@ def find_center():
 			print(ob.offsetK[1])
 			print(ob.offsetK[2])
 	
-	bpy.ops.view3d.snap_cursor_to_selected()
+	# bpy.ops.view3d.snap_cursor_to_selected()
 
 
 def return_pos():
