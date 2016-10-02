@@ -17,9 +17,9 @@ from bpy.props import *
 
 
 def explode(self):
-	x = bpy.context.scene.explodeX
-	y = bpy.context.scene.explodeY
-	z = bpy.context.scene.explodeZ
+	x = bpy.context.scene.explode_distance[0]
+	y = bpy.context.scene.explode_distance[1]
+	z = bpy.context.scene.explode_distance[2]
 	for ob in bpy.data.objects:
 		if ob.type == "MESH":
 			pos = ob.location
@@ -101,25 +101,11 @@ class OBJECT_OT_explode(bpy.types.Operator):
 	bl_idname = "object.explode"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	offsetX = bpy.types.Scene.explodeX = FloatProperty(
-		name = "X",
-		min = 0,
-		default = 0.0,
-		description = "Explode meshes by X coordinate"
-	)
-	
-	offsetY = bpy.types.Scene.explodeY = FloatProperty(
-		name = "Y",
-		min = 0,
-		default = 0.0,
-		description = "Explode meshes by Y coordinate"
-	)
-	
-	offsetZ = bpy.types.Scene.explodeZ = FloatProperty(
-		name = "Z",
-		min = 0,
-		default = 0.0,
-		description = "Explode meshes by Z coordinate"
+	explode_distance = bpy.types.Scene.explode_distance = FloatVectorProperty(
+		name = "explode_distance",
+		min = 0.0,
+		default = (0.0, 0.0, 0.0),
+		description = "distance from center of objects"
 	)
 
 	@classmethod
@@ -150,17 +136,13 @@ class NexusToolsPanel(bpy.types.Panel):
 		box.label(text="Explode objects")
 		
 		box.operator("object.find_center", text="Find center")
-		
-		col = box.column(align=True)
-		col.prop(scene, "explodeX")
-		col.prop(scene, "explodeY")
-		col.prop(scene, "explodeZ")
+
+		box.prop(scene, "explode_distance", text="Explode distance")
 
 		col = box.column(align=True)
 		col.operator("object.explode", text="Explode objects")
 		col.operator("object.return_pos", text="Return objects")
 
-		# box.prop(obj, "location", text="Transform")
 
 def register():
 	bpy.utils.register_class(NexusToolsPanel)
