@@ -42,15 +42,29 @@ def explode(self):
 
 def find_center():
 	bpy.ops.object.select_all(action='DESELECT')
+	for ob in bpy.data.objects:
+		if ob.type == "MESH":
+			ob.select = True
+
+	if bpy.context.scene.cur_to_center:
+		bpy.ops.view3d.snap_cursor_to_selected()
+
+
 	cur = bpy.context.scene.cursor_location
 	cursorX = cur.x
 	cursorY = cur.y
 	cursorZ = cur.z
+	# curLen = sqrt(cursorX*cursorX+cursorY*cursorY+cursorZ*cursorZ)
 
 	for ob in bpy.data.objects:
 		if ob.type == "MESH":
 			ob.select = True
 			ob.normal_location = ob.location
+			# obLen = sqrt(ob.location.x*ob.location.x+ \
+			# 						 ob.location.y*ob.location.y+ \
+			# 						 ob.location.z*ob.location.z)
+			
+
 
 
 			if fabs(ob.location.x) > fabs(cursorX): #???
@@ -72,8 +86,6 @@ def find_center():
 			print(ob.offsetK[0])
 			print(ob.offsetK[1])
 			print(ob.offsetK[2])
-	
-	# bpy.ops.view3d.snap_cursor_to_selected()
 
 
 def return_pos():
@@ -98,6 +110,12 @@ class OBJECT_OT_find_center(bpy.types.Operator):
 	bl_idname = "object.find_center"
 	bl_options = {'REGISTER', 'UNDO'}
 
+	cur_to_center = bpy.types.Scene.cur_to_center = BoolProperty(
+		name = "cur_to_center",
+		default = True,
+		description = "Translate 3d cursor to center objects"
+	)
+
 	@classmethod
 	def poll(cls, context):
 		return context.mode == "OBJECT"
@@ -121,10 +139,10 @@ class OBJECT_OT_return_pos(bpy.types.Operator):
 	)
 
 	offsetK = bpy.types.Object.offsetK = FloatVectorProperty(
-		name = "normal_location",
+		name = "offsetK",
 		min = 1.0,
 		default = (0.0, 0.0, 0.0),
-		description = "normal location before explode"
+		description = "coefficient offset object"
 	)
 
 	@classmethod
@@ -177,7 +195,9 @@ class NexusToolsPanel(bpy.types.Panel):
 		box = layout.box()
 		box.label(text="Explode objects")
 		
-		box.operator("object.find_center", text="Find center")
+		col = box.column(align=True)
+		col.operator("object.find_center", text="Find center")
+		col.prop(scene, "cur_to_center", text="Cursor to center")
 
 		box.prop(scene, "explode_distance", text="Explode distance")
 
