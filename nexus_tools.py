@@ -17,7 +17,7 @@ import mathutils
 from bpy.props import *
 
 
-def explode(self):
+def explode():
 	x = bpy.context.scene.explode_distance[0]
 	y = bpy.context.scene.explode_distance[1]
 	z = bpy.context.scene.explode_distance[2]
@@ -58,14 +58,12 @@ def find_center():
 
 	for ob in bpy.data.objects:
 		if ob.type == "MESH":
-			ob.select = True
 			ob.normal_location = ob.location
+
 			# obLen = sqrt(ob.location.x*ob.location.x+ \
 			# 						 ob.location.y*ob.location.y+ \
 			# 						 ob.location.z*ob.location.z)
 			
-
-
 
 			if fabs(ob.location.x) > fabs(cursorX): #???
 				ob.offsetK[0] = fabs(ob.location.x / cursorX)
@@ -81,11 +79,6 @@ def find_center():
 				ob.offsetK[2] = fabs(ob.location.z / cursorZ)
 			else:
 				ob.offsetK[2] = fabs(cursorZ / ob.location.z)
-
-			print(ob.name)
-			print(ob.offsetK[0])
-			print(ob.offsetK[1])
-			print(ob.offsetK[2])
 
 
 def return_pos():
@@ -173,7 +166,7 @@ class OBJECT_OT_explode(bpy.types.Operator):
 		return context.mode == "OBJECT"
 
 	def invoke(self, context, event):
-		explode(self)
+		explode()
 		return {'FINISHED'}
 
 
