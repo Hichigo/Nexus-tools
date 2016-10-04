@@ -59,7 +59,7 @@ def find_center():
 	for ob in bpy.data.objects:
 		if ob.type == "MESH":
 			ob.normal_location = ob.location
-
+			ob.offset = ob.location - cur
 			# obLen = sqrt(ob.location.x*ob.location.x+ \
 			# 						 ob.location.y*ob.location.y+ \
 			# 						 ob.location.z*ob.location.z)
@@ -108,7 +108,12 @@ class OBJECT_OT_find_center(bpy.types.Operator):
 		default = True,
 		description = "Translate 3d cursor to center objects"
 	)
-
+	offset = bpy.types.Object.offset = FloatVectorProperty(
+		name = "offset",
+		default = (0.0, 0.0, 0.0),
+		subtype = "XYZ",
+		description = "Vector direction from cursor pointer to object"
+	)
 	@classmethod
 	def poll(cls, context):
 		return context.mode == "OBJECT"
@@ -136,6 +141,7 @@ class OBJECT_OT_return_pos(bpy.types.Operator):
 		min = 1.0,
 		default = (0.0, 0.0, 0.0),
 		description = "coefficient offset object"
+		# update = return_pos
 	)
 
 	@classmethod
@@ -158,6 +164,7 @@ class OBJECT_OT_explode(bpy.types.Operator):
 		name = "explode_distance",
 		min = 0.0,
 		default = (0.0, 0.0, 0.0),
+		subtype = "XYZ",
 		description = "distance from center of objects"
 	)
 
@@ -197,6 +204,9 @@ class NexusToolsPanel(bpy.types.Panel):
 		col = box.column(align=True)
 		col.operator("object.explode", text="Explode objects")
 		col.operator("object.return_pos", text="Return objects")
+
+		box.prop(obj, "offset", text="Offset")
+
 
 def register():
 	bpy.utils.register_class(NexusToolsPanel)
