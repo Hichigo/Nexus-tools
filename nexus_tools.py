@@ -1,7 +1,7 @@
 # bl_info
 bl_info = {
 	"name": "Nexus tools",
-	"author": "nexus studio",
+	"author": "Nexus Studio",
 	"version": (0,0,1),
 	"blender": (2,78),
 	"location": "T > Nexus Tools",
@@ -178,10 +178,10 @@ class OBJECT_OT_explode(bpy.types.Operator):
 
 
 #class panel
-class NexusToolsPanel(bpy.types.Panel):
+class ExplodeObjectsPanel(bpy.types.Panel):
 	"""Creates a Panel in the view3d context of the tools panel (key "T")"""
 	bl_label = "Nexus Tools"
-	bl_idname = "nexustoolsid"
+	bl_idname = "explodeobjectsid"
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'TOOLS'
 	bl_category = "Nexus Tools"
@@ -209,14 +209,14 @@ class NexusToolsPanel(bpy.types.Panel):
 
 
 def register():
-	bpy.utils.register_class(NexusToolsPanel)
+	bpy.utils.register_class(ExplodeObjectsPanel)
 	bpy.utils.register_class(OBJECT_OT_explode)
 	bpy.utils.register_class(OBJECT_OT_find_center)
 	bpy.utils.register_class(OBJECT_OT_return_pos)
 	# bpy.utils.register_class(ExplodeData)
 
 def unregister():
-	bpy.utils.unregister_class(NexusToolsPanel)
+	bpy.utils.unregister_class(ExplodeObjectsPanel)
 	bpy.utils.unregister_class(OBJECT_OT_explode)
 	bpy.utils.unregister_class(OBJECT_OT_find_center)
 	bpy.utils.unregister_class(OBJECT_OT_return_pos)
