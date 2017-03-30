@@ -90,7 +90,9 @@ def rename():
 	selected_objects = bpy.context.selected_objects
 	for i in range( len( selected_objects ) ):
 		selected_objects[i].name = "{}_{}_{}".format(bpy.context.scene.name_meshes_preffix, bpy.context.scene.name_meshes, i)
-		selected_objects[i].data.materials.append( bpy.data.materials.new("M_NameObject_Type") )
+		if ( bpy.context.scene.name_mat_set ):
+			name_mat = "{}_{}".format(bpy.context.scene.name_mat_preffix, bpy.context.scene.name_mat)
+			selected_objects[i].data.materials.append( bpy.data.materials.new( name_mat ) )
 
 #class of explode data variable
 # class ExplodeData(bpy.types.PropertyGroup):
@@ -189,13 +191,31 @@ class OBJECT_OT_rename(bpy.types.Operator):
 
 	name_meshes = bpy.types.Scene.name_meshes = StringProperty(
 		name = "rename",
-		default = "new name",
+		default = "NameObject",
 		description = "template name for meshes"
 	)
 
 	name_meshes_preffix = bpy.types.Scene.name_meshes_preffix = StringProperty(
 		name = "preffix",
 		default = "SM",
+		description = "template preffix for meshes"
+	)
+
+	name_mat_set = bpy.types.Scene.name_mat_set = BoolProperty(
+		name = "set_mat",
+		default = False,
+		description = "create new material?"
+	)
+
+	name_mat = bpy.types.Scene.name_mat = StringProperty(
+		name = "rename",
+		default = "NameObject_Type",
+		description = "template name for meshes"
+	)
+
+	name_mat_preffix = bpy.types.Scene.name_mat_preffix = StringProperty(
+		name = "preffix",
+		default = "M",
 		description = "template preffix for meshes"
 	)
 
@@ -251,9 +271,26 @@ class FastRenamePanel(bpy.types.Panel):
 		scene = context.scene
 
 		col = layout.column(align=True)
-		col.prop(scene, "name_meshes_preffix", text="Preffix")
-		col.prop(scene, "name_meshes", text="New name")
 		col.operator("object.rename", text="Rename")
+
+		col = layout.column(align=True)
+		box = col.box()
+
+		box.label("Mesh")
+		box.separator()
+		box.prop(scene, "name_meshes_preffix", text="Preffix")
+		box.prop(scene, "name_meshes", text="New name")
+
+
+		col = layout.column(align=True)
+		box = col.box()
+
+		box.label("Material")
+		box.separator()
+		box.prop(scene, "name_mat_set", text="Add material")
+		box.prop(scene, "name_mat_preffix", text="Preffix")
+		box.prop(scene, "name_mat", text="Name")
+
 
 
 def register():
