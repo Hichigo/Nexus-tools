@@ -86,7 +86,10 @@ def return_pos():
 		if ob.type == "MESH":
 			ob.location.xyz = ob.normal_location
 
-
+def rename():
+	selected_objects = bpy.context.selected_objects
+	for i in range( len( selected_objects ) ):
+		selected_objects[i].name = "{}_{}_{}".format(bpy.context.scene.name_meshes_preffix, bpy.context.scene.name_meshes, i)
 
 #class of explode data variable
 # class ExplodeData(bpy.types.PropertyGroup):
@@ -176,6 +179,32 @@ class OBJECT_OT_explode(bpy.types.Operator):
 		explode()
 		return {'FINISHED'}
 
+#class init rename
+class OBJECT_OT_rename(bpy.types.Operator):
+	"""Fast rename meshes"""
+	bl_label = "Fast rename meshes"
+	bl_idname = "object.rename"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	name_meshes = bpy.types.Scene.name_meshes = StringProperty(
+		name = "rename",
+		default = "new name",
+		description = "template name for meshes"
+	)
+
+	name_meshes_preffix = bpy.types.Scene.name_meshes_preffix = StringProperty(
+		name = "preffix",
+		default = "SM",
+		description = "template preffix for meshes"
+	)
+
+	@classmethod
+	def poll(cls, context):
+		return context.mode == "OBJECT"
+
+	def invoke(self, context, event):
+		rename()
+		return {'FINISHED'}
 
 #class panel
 class ExplodeObjectsPanel(bpy.types.Panel):
@@ -206,18 +235,41 @@ class ExplodeObjectsPanel(bpy.types.Panel):
 		box = layout.box()
 		box.prop(obj, "offset", text="Offset")
 
+class FastRenamePanel(bpy.types.Panel):
+	"""Creates a Panel in the view3d context of the tools panel (key "T")"""
+	bl_label = "Fast rename"
+	bl_idname = "fastrenameid"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'TOOLS'
+	bl_category = "Nexus Tools"
+	bl_context = "objectmode"
+
+	def draw(self, context):
+		layout = self.layout
+		obj = context.object
+		scene = context.scene
+
+		col = layout.column(align=True)
+		col.prop(scene, "name_meshes_preffix", text="Preffix")
+		col.prop(scene, "name_meshes", text="New name")
+		col.operator("object.rename", text="Rename")
+
 
 def register():
+	bpy.utils.register_class(FastRenamePanel)
 	bpy.utils.register_class(ExplodeObjectsPanel)
 	bpy.utils.register_class(OBJECT_OT_explode)
 	bpy.utils.register_class(OBJECT_OT_find_center)
+	bpy.utils.register_class(OBJECT_OT_rename)
 	bpy.utils.register_class(OBJECT_OT_return_pos)
 	# bpy.utils.register_class(ExplodeData)
 
 def unregister():
+	bpy.utils.unregister_class(FastRenamePanel)
 	bpy.utils.unregister_class(ExplodeObjectsPanel)
 	bpy.utils.unregister_class(OBJECT_OT_explode)
 	bpy.utils.unregister_class(OBJECT_OT_find_center)
+	bpy.utils.unregister_class(OBJECT_OT_rename)
 	bpy.utils.unregister_class(OBJECT_OT_return_pos)
 	# bpy.utils.unregister_class(ExplodeData)
 
