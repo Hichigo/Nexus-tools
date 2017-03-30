@@ -63,7 +63,7 @@ def find_center():
 			# obLen = sqrt(ob.location.x*ob.location.x+ \
 			# 						 ob.location.y*ob.location.y+ \
 			# 						 ob.location.z*ob.location.z)
-			
+
 
 			if fabs(ob.location.x) > fabs(cursorX): #???
 				ob.offsetK[0] = fabs(ob.location.x / cursorX)
@@ -180,31 +180,30 @@ class OBJECT_OT_explode(bpy.types.Operator):
 #class panel
 class ExplodeObjectsPanel(bpy.types.Panel):
 	"""Creates a Panel in the view3d context of the tools panel (key "T")"""
-	bl_label = "Nexus Tools"
+	bl_label = "Explode object"
 	bl_idname = "explodeobjectsid"
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'TOOLS'
 	bl_category = "Nexus Tools"
 	bl_context = "objectmode"
-	
+
 	def draw(self, context):
 		layout = self.layout
 		obj = context.object
 		scene = context.scene
 
-		box = layout.box()
-		box.label(text="Explode objects")
-		
-		col = box.column(align=True)
+		col = layout.column(align=True)
 		col.operator("object.find_center", text="Find center")
 		col.prop(scene, "cur_to_center", text="Cursor to center")
 
+		box = layout.box()
 		box.prop(scene, "explode_distance", text="Explode distance")
 
-		col = box.column(align=True)
+		col = layout.column(align=True)
 		col.operator("object.explode", text="Explode objects")
 		col.operator("object.return_pos", text="Return objects")
 
+		box = layout.box()
 		box.prop(obj, "offset", text="Offset")
 
 
