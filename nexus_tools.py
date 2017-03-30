@@ -90,6 +90,7 @@ def rename():
 	selected_objects = bpy.context.selected_objects
 	for i in range( len( selected_objects ) ):
 		selected_objects[i].name = "{}_{}_{}".format(bpy.context.scene.name_meshes_preffix, bpy.context.scene.name_meshes, i)
+		selected_objects[i].data.materials.append( bpy.data.materials.new("M_NameObject_Type") )
 
 #class of explode data variable
 # class ExplodeData(bpy.types.PropertyGroup):
