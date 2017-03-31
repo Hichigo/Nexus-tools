@@ -277,7 +277,6 @@ class FastRenamePanel(bpy.types.Panel):
 		box = col.box()
 
 		box.label("Mesh")
-		box.separator()
 		box.prop(scene, "name_meshes_preffix", text="Preffix")
 		box.prop(scene, "name_meshes", text="New name")
 
@@ -286,7 +285,6 @@ class FastRenamePanel(bpy.types.Panel):
 		box = col.box()
 
 		box.label("Material")
-		box.separator()
 		box.prop(scene, "name_mat_set", text="Add material")
 		box.prop(scene, "name_mat_preffix", text="Preffix")
 		box.prop(scene, "name_mat", text="Name")
