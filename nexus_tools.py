@@ -103,25 +103,77 @@ class ExampleAddonPreferences(bpy.types.AddonPreferences):
 	# when defining this in a submodule of a python package.
 	bl_idname = __name__
 
-	filepath = StringProperty(
-			name="Example File Path",
-			subtype='FILE_PATH',
-			)
-	number = IntProperty(
-			name="Example Number",
-			default=4,
-			)
-	boolean = BoolProperty(
-			name="Example Boolean",
-			default=False,
-			)
+	mesh_preffix = StringProperty(
+		name="Mesh name preffix",
+		default="SM_"
+		# subtype='FILE_PATH',
+	)
+	mesh_name = StringProperty(
+		name="Mesh name",
+		default="NameObject"
+	)
+	mesh_suffix = StringProperty(
+		name="Mesh name suffix",
+		default="_HP"
+	)
+
+	mat_preffix = StringProperty(
+		name="Material name preffix",
+		default="M_"
+	)
+	mat_name = StringProperty(
+		name="Material name",
+		default="NameMaterial"
+	)
+	mat_suffix = StringProperty(
+		name="Material name suffix",
+		default="_LOW"
+	)
+	#RENAME PROPS
+	name_meshes = bpy.types.Scene.name_meshes = StringProperty(
+		name = "rename",
+		default = "NameObject",
+		description = "template name for meshes"
+	)
+	name_meshes_preffix = bpy.types.Scene.name_meshes_preffix = StringProperty(
+		name = "preffix",
+		default = "SM",
+		description = "template preffix for meshes"
+	)
+	name_mat_set = bpy.types.Scene.name_mat_set = BoolProperty(
+		name = "Add material",
+		default = False,
+		description = "create new material?"
+	)
+
+	get_object_name = bpy.types.Scene.get_object_name = BoolProperty(
+		name = "Get object name",
+		default = False,
+		description = "Get object name?"
+	)
+	name_mat = bpy.types.Scene.name_mat = StringProperty(
+		name = "rename",
+		default = "NameObject_Type",
+		description = "template name for meshes"
+	)
+	name_mat_preffix = bpy.types.Scene.name_mat_preffix = StringProperty(
+		name = "preffix",
+		default = "M",
+		description = "template preffix for meshes"
+	)
 
 	def draw(self, context):
 		layout = self.layout
-		layout.label(text="This is a preferences view for our addon")
-		layout.prop(self, "filepath")
-		layout.prop(self, "number")
-		layout.prop(self, "boolean")
+
+		col = layout.column(align=True)
+		col.prop(self, "mesh_preffix")
+		col.prop(self, "mesh_name")
+		col.prop(self, "mesh_suffix")
+
+		col = layout.column(align=True)
+		col.prop(self, "mat_preffix")
+		col.prop(self, "mat_name")
+		col.prop(self, "mat_suffix")
 
 
 #class find center
@@ -211,41 +263,8 @@ class OBJECT_OT_rename(bpy.types.Operator):
 	bl_idname = "object.rename"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	name_meshes = bpy.types.Scene.name_meshes = StringProperty(
-		name = "rename",
-		default = "NameObject",
-		description = "template name for meshes"
-	)
-
-	name_meshes_preffix = bpy.types.Scene.name_meshes_preffix = StringProperty(
-		name = "preffix",
-		default = "SM",
-		description = "template preffix for meshes"
-	)
-
-	name_mat_set = bpy.types.Scene.name_mat_set = BoolProperty(
-		name = "Add material",
-		default = False,
-		description = "create new material?"
-	)
-
-	get_object_name = bpy.types.Scene.get_object_name = BoolProperty(
-		name = "Get object name",
-		default = False,
-		description = "Get object name?"
-	)
-
-	name_mat = bpy.types.Scene.name_mat = StringProperty(
-		name = "rename",
-		default = "NameObject_Type",
-		description = "template name for meshes"
-	)
-
-	name_mat_preffix = bpy.types.Scene.name_mat_preffix = StringProperty(
-		name = "preffix",
-		default = "M",
-		description = "template preffix for meshes"
-	)
+	def init(self, context):
+		print(bpy.context.user_preferences.addons[__name__].preferences.mat_name)
 
 	@classmethod
 	def poll(cls, context):
