@@ -91,8 +91,12 @@ def rename():
 	for i in range( len( selected_objects ) ):
 		selected_objects[i].name = "{}_{}_{}".format(bpy.context.scene.name_meshes_preffix, bpy.context.scene.name_meshes, i)
 		if ( bpy.context.scene.name_mat_set ):
-			name_mat = "{}_{}".format(bpy.context.scene.name_mat_preffix, bpy.context.scene.name_mat)
-			selected_objects[i].data.materials.append( bpy.data.materials.new( name_mat ) )
+			if ( bpy.context.scene.get_object_name ):
+				name_mat = "{}_{}".format(bpy.context.scene.name_mat_preffix, bpy.context.scene.name_meshes)
+				selected_objects[i].data.materials.append( bpy.data.materials.new( name_mat ) )
+			else:
+				name_mat = "{}_{}".format(bpy.context.scene.name_mat_preffix, bpy.context.scene.name_mat)
+				selected_objects[i].data.materials.append( bpy.data.materials.new( name_mat ) )
 
 #class of explode data variable
 # class ExplodeData(bpy.types.PropertyGroup):
@@ -202,9 +206,15 @@ class OBJECT_OT_rename(bpy.types.Operator):
 	)
 
 	name_mat_set = bpy.types.Scene.name_mat_set = BoolProperty(
-		name = "set_mat",
+		name = "Add material",
 		default = False,
 		description = "create new material?"
+	)
+
+	get_object_name = bpy.types.Scene.get_object_name = BoolProperty(
+		name = "Get object name",
+		default = False,
+		description = "Get object name?"
 	)
 
 	name_mat = bpy.types.Scene.name_mat = StringProperty(
@@ -273,21 +283,22 @@ class FastRenamePanel(bpy.types.Panel):
 		col = layout.column(align=True)
 		col.operator("object.rename", text="Rename")
 
-		col = layout.column(align=True)
-		box = col.box()
+		box = layout.box()
 
 		box.label("Mesh")
 		box.prop(scene, "name_meshes_preffix", text="Preffix")
 		box.prop(scene, "name_meshes", text="New name")
 
+		split = layout.split()
+		row = split.row(align=True)
+		row.prop(scene, "name_mat_set", text="Add material")
+		row.prop(scene, "get_object_name", text="Get object name")
 
-		col = layout.column(align=True)
-		box = col.box()
-
+		box = layout.box()
 		box.label("Material")
-		box.prop(scene, "name_mat_set", text="Add material")
 		box.prop(scene, "name_mat_preffix", text="Preffix")
 		box.prop(scene, "name_mat", text="Name")
+		box.enabled = bpy.context.scene.name_mat_set
 
 
 
