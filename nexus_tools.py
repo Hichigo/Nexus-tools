@@ -89,7 +89,7 @@ def return_pos():
 def rename():
 	selected_objects = bpy.context.selected_objects
 	for i in range( len( selected_objects ) ):
-		selected_objects[i].name = "{}_{}_{}".format(bpy.context.scene.name_meshes_preffix, bpy.context.scene.name_meshes, i)
+		selected_objects[i].name = "{}_{}_{}".format(bpy.context.scene.name_meshes_preffix, bpy.context.scene.name_meshes, str(i).zfill(3))
 		if ( bpy.context.scene.name_mat_set ):
 			if ( bpy.context.scene.get_object_name ):
 				name_mat = "{}_{}".format(bpy.context.scene.name_mat_preffix, bpy.context.scene.name_meshes)
@@ -98,13 +98,31 @@ def rename():
 				name_mat = "{}_{}".format(bpy.context.scene.name_mat_preffix, bpy.context.scene.name_mat)
 				selected_objects[i].data.materials.append( bpy.data.materials.new( name_mat ) )
 
-#class of explode data variable
-# class ExplodeData(bpy.types.PropertyGroup):
-# 	normal_location = bpy.props.FloatVectorProperty(
-# 		name = "normal_location",
-# 		default = (0.0, 0.0, 0.0),
-# 		description = "normal location before explode"
-# 	)
+class ExampleAddonPreferences(bpy.types.AddonPreferences):
+	# this must match the addon name, use '__package__'
+	# when defining this in a submodule of a python package.
+	bl_idname = __name__
+
+	filepath = StringProperty(
+			name="Example File Path",
+			subtype='FILE_PATH',
+			)
+	number = IntProperty(
+			name="Example Number",
+			default=4,
+			)
+	boolean = BoolProperty(
+			name="Example Boolean",
+			default=False,
+			)
+
+	def draw(self, context):
+		layout = self.layout
+		layout.label(text="This is a preferences view for our addon")
+		layout.prop(self, "filepath")
+		layout.prop(self, "number")
+		layout.prop(self, "boolean")
+
 
 #class find center
 class OBJECT_OT_find_center(bpy.types.Operator):
@@ -289,18 +307,15 @@ class FastRenamePanel(bpy.types.Panel):
 		box.prop(scene, "name_meshes_preffix", text="Preffix")
 		box.prop(scene, "name_meshes", text="New name")
 
-		split = layout.split()
-		row = split.row(align=True)
-		row.prop(scene, "name_mat_set", text="Add material")
-		row.prop(scene, "get_object_name", text="Get object name")
+		col = layout.column(align=True)
+		col.prop(scene, "name_mat_set", text="Add material")
+		col.prop(scene, "get_object_name", text="Get object name")
 
 		box = layout.box()
 		box.label("Material")
 		box.prop(scene, "name_mat_preffix", text="Preffix")
 		box.prop(scene, "name_mat", text="Name")
 		box.enabled = bpy.context.scene.name_mat_set
-
-
 
 def register():
 	bpy.utils.register_class(FastRenamePanel)
@@ -309,6 +324,7 @@ def register():
 	bpy.utils.register_class(OBJECT_OT_find_center)
 	bpy.utils.register_class(OBJECT_OT_rename)
 	bpy.utils.register_class(OBJECT_OT_return_pos)
+	bpy.utils.register_class(ExampleAddonPreferences)
 	# bpy.utils.register_class(ExplodeData)
 
 def unregister():
@@ -318,6 +334,7 @@ def unregister():
 	bpy.utils.unregister_class(OBJECT_OT_find_center)
 	bpy.utils.unregister_class(OBJECT_OT_rename)
 	bpy.utils.unregister_class(OBJECT_OT_return_pos)
+	bpy.utils.unregister_class(ExampleAddonPreferences)
 	# bpy.utils.unregister_class(ExplodeData)
 
 if __name__ == "__main__":
