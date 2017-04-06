@@ -2,7 +2,7 @@
 bl_info = {
 	"name": "Nexus tools",
 	"author": "Nexus Studio",
-	"version": (0,0,1),
+	"version": (0,1,1),
 	"blender": (2,78),
 	"location": "T > Nexus Tools",
 	"description": "Explode meshes",
