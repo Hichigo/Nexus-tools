@@ -86,16 +86,16 @@ def return_pos():
 		if ob.type == "MESH":
 			ob.location.xyz = ob.normal_location
 
-def rename():
+def rename(addon_prefs):
 	selected_objects = bpy.context.selected_objects
 	for i in range( len( selected_objects ) ):
-		selected_objects[i].name = "{}_{}_{}".format(bpy.context.scene.name_meshes_preffix, bpy.context.scene.name_meshes, str(i).zfill(3))
+		selected_objects[i].name = "{}{}{}".format(addon_prefs.mesh_preffix, addon_prefs.mesh_name, addon_prefs.mesh_suffix)
 		if ( bpy.context.scene.name_mat_set ):
 			if ( bpy.context.scene.get_object_name ):
-				name_mat = "{}_{}".format(bpy.context.scene.name_mat_preffix, bpy.context.scene.name_meshes)
+				name_mat = "{}{}{}".format(addon_prefs.mat_preffix, addon_prefs.mesh_name, addon_prefs.mesh_suffix)
 				selected_objects[i].data.materials.append( bpy.data.materials.new( name_mat ) )
 			else:
-				name_mat = "{}_{}".format(bpy.context.scene.name_mat_preffix, bpy.context.scene.name_mat)
+				name_mat = "{}{}{}".format(addon_prefs.mat_preffix, addon_prefs.mat_name, addon_prefs.mat_suffix)
 				selected_objects[i].data.materials.append( bpy.data.materials.new( name_mat ) )
 
 class ExampleAddonPreferences(bpy.types.AddonPreferences):
@@ -103,64 +103,35 @@ class ExampleAddonPreferences(bpy.types.AddonPreferences):
 	# when defining this in a submodule of a python package.
 	bl_idname = __name__
 
-	mesh_preffix = StringProperty(
+	mesh_preffix = bpy.types.Scene.mesh_preffix = StringProperty(
 		name="Mesh name preffix",
 		default="SM_"
 		# subtype='FILE_PATH',
 	)
-	mesh_name = StringProperty(
+	mesh_name = bpy.types.Scene.mesh_name = StringProperty(
 		name="Mesh name",
 		default="NameObject"
 	)
-	mesh_suffix = StringProperty(
+	mesh_suffix = bpy.types.Scene.mesh_suffix = StringProperty(
 		name="Mesh name suffix",
 		default="_HP"
 	)
 
-	mat_preffix = StringProperty(
+	mat_preffix = bpy.types.Scene.mat_preffix = StringProperty(
 		name="Material name preffix",
 		default="M_"
 	)
-	mat_name = StringProperty(
+	mat_name = bpy.types.Scene.mat_name = StringProperty(
 		name="Material name",
 		default="NameMaterial"
 	)
-	mat_suffix = StringProperty(
+	mat_suffix = bpy.types.Scene.mat_suffix = StringProperty(
 		name="Material name suffix",
 		default="_LOW"
 	)
-	#RENAME PROPS
-	name_meshes = bpy.types.Scene.name_meshes = StringProperty(
-		name = "rename",
-		default = "NameObject",
-		description = "template name for meshes"
-	)
-	name_meshes_preffix = bpy.types.Scene.name_meshes_preffix = StringProperty(
-		name = "preffix",
-		default = "SM",
-		description = "template preffix for meshes"
-	)
-	name_mat_set = bpy.types.Scene.name_mat_set = BoolProperty(
-		name = "Add material",
-		default = False,
-		description = "create new material?"
-	)
 
-	get_object_name = bpy.types.Scene.get_object_name = BoolProperty(
-		name = "Get object name",
-		default = False,
-		description = "Get object name?"
-	)
-	name_mat = bpy.types.Scene.name_mat = StringProperty(
-		name = "rename",
-		default = "NameObject_Type",
-		description = "template name for meshes"
-	)
-	name_mat_preffix = bpy.types.Scene.name_mat_preffix = StringProperty(
-		name = "preffix",
-		default = "M",
-		description = "template preffix for meshes"
-	)
+
+
 
 	def draw(self, context):
 		layout = self.layout
@@ -263,15 +234,15 @@ class OBJECT_OT_rename(bpy.types.Operator):
 	bl_idname = "object.rename"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	def init(self, context):
-		print(bpy.context.user_preferences.addons[__name__].preferences.mat_name)
-
 	@classmethod
 	def poll(cls, context):
 		return context.mode == "OBJECT"
 
 	def invoke(self, context, event):
-		rename()
+		user_preferences = bpy.context.user_preferences
+		addon_prefs = user_preferences.addons[__name__].preferences
+
+		rename(addon_prefs)
 		return {'FINISHED'}
 
 #class panel
@@ -312,29 +283,46 @@ class FastRenamePanel(bpy.types.Panel):
 	bl_category = "Nexus Tools"
 	bl_context = "objectmode"
 
+	name_mat_set = bpy.types.Scene.name_mat_set = BoolProperty(
+		name = "Add material",
+		default = False,
+		description = "create new material?"
+	)
+
+	get_object_name = bpy.types.Scene.get_object_name = BoolProperty(
+		name = "Get object name",
+		default = False,
+		description = "Get object name?"
+	)
+
 	def draw(self, context):
 		layout = self.layout
 		obj = context.object
 		scene = context.scene
+		user_preferences = bpy.context.user_preferences
+		addon_prefs = user_preferences.addons[__name__].preferences
 
 		col = layout.column(align=True)
 		col.operator("object.rename", text="Rename")
 
 		box = layout.box()
-
-		box.label("Mesh")
-		box.prop(scene, "name_meshes_preffix", text="Preffix")
-		box.prop(scene, "name_meshes", text="New name")
+		col = box.column(align=True)
+		col.label("Mesh")
+		col.prop(addon_prefs, "mesh_preffix", text="Preffix")
+		col.prop(addon_prefs, "mesh_name", text="Name")
+		col.prop(addon_prefs, "mesh_suffix", text="Suffix")
 
 		col = layout.column(align=True)
 		col.prop(scene, "name_mat_set", text="Add material")
 		col.prop(scene, "get_object_name", text="Get object name")
 
 		box = layout.box()
-		box.label("Material")
-		box.prop(scene, "name_mat_preffix", text="Preffix")
-		box.prop(scene, "name_mat", text="Name")
-		box.enabled = bpy.context.scene.name_mat_set
+		col = box.column(align=True)
+		col.label("Material")
+		col.prop(scene, "mat_preffix", text="Preffix")
+		col.prop(scene, "mat_name", text="Name")
+		col.prop(scene, "mat_suffix", text="Suffix")
+		col.enabled = bpy.context.scene.name_mat_set
 
 def register():
 	bpy.utils.register_class(FastRenamePanel)
