@@ -8,7 +8,7 @@ bl_info = {
 	"description": "Tools",
 	"warning": "",
 	"wiki_url": "None",
-	"category": "Mesh"
+	"category": "User"
 }
 
 import bpy
@@ -31,9 +31,13 @@ def rename_object_to_selected():
 		ob.name = "SM_Mesh"
 
 def rename(addon_prefs):
+	rename_mesh(addon_prefs)
+	rename_mat(addon_prefs)
+
+def rename_mat(addon_prefs):
 	selected_objects = bpy.context.selected_objects
 	for i in range( len( selected_objects ) ):
-		selected_objects[i].name = "{}{}{}".format(addon_prefs.mesh_preffix, addon_prefs.mesh_name, addon_prefs.mesh_suffix)
+		# selected_objects[i].name = "{}{}{}".format(addon_prefs.mesh_preffix, addon_prefs.mesh_name, addon_prefs.mesh_suffix)
 		if bpy.context.scene.name_mat_set:
 			number_of_materials = len( selected_objects[i].data.materials )
 			if number_of_materials > 0: #rename material
@@ -50,6 +54,11 @@ def rename(addon_prefs):
 				else: # get our name
 					name_mat = "{}{}{}".format(addon_prefs.mat_preffix, addon_prefs.mat_name, addon_prefs.mat_suffix)
 					selected_objects[i].data.materials.append( bpy.data.materials.new( name_mat ) )
+
+def rename_mesh(addon_prefs):
+	selected_objects = bpy.context.selected_objects
+	for i in range( len( selected_objects ) ):
+		selected_objects[i].name = "{}{}{}".format(addon_prefs.mesh_preffix, addon_prefs.mesh_name, addon_prefs.mesh_suffix)
 
 def add_suffix(addon_prefs):
 	selected_objects = bpy.context.selected_objects
@@ -112,7 +121,7 @@ class ExampleAddonPreferences(bpy.types.AddonPreferences):
 		col.prop(self, "mat_suffix")
 
 class OBJECT_OT_rename(bpy.types.Operator):
-	"""Fast rename meshes"""
+	"""Rename meshes and materials"""
 	bl_label = "Fast rename meshes"
 	bl_idname = "object.rename"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -126,6 +135,40 @@ class OBJECT_OT_rename(bpy.types.Operator):
 		addon_prefs = user_preferences.addons[__name__].preferences
 
 		rename(addon_prefs)
+		return {'FINISHED'}
+
+class OBJECT_OT_rename_mat(bpy.types.Operator):
+	"""Rename material"""
+	bl_label = "Rename material"
+	bl_idname = "object.rename_mat"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	@classmethod
+	def poll(cls, context):
+		return context.mode == "OBJECT"
+
+	def execute(self, context):
+		user_preferences = bpy.context.user_preferences
+		addon_prefs = user_preferences.addons[__name__].preferences
+
+		rename_mat(addon_prefs)
+		return {'FINISHED'}
+
+class OBJECT_OT_rename_mesh(bpy.types.Operator):
+	"""Rename mesh"""
+	bl_label = "Rename material"
+	bl_idname = "object.rename_mesh"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	@classmethod
+	def poll(cls, context):
+		return context.mode == "OBJECT"
+
+	def execute(self, context):
+		user_preferences = bpy.context.user_preferences
+		addon_prefs = user_preferences.addons[__name__].preferences
+
+		rename_mesh(addon_prefs)
 		return {'FINISHED'}
 
 class OBJECT_OT_add_suffix(bpy.types.Operator):
@@ -191,11 +234,7 @@ class FastRenamePanel(bpy.types.Panel):
 		addon_prefs = user_preferences.addons[__name__].preferences
 
 		col = layout.column()
-		col.operator("object.rename", text="Rename")
-
-		row = layout.row(align=True)
-		row.operator("object.add_preffix", text="Add preffix")
-		row.operator("object.add_suffix", text="Add suffix")
+		col.operator("object.rename", text="Rename mesh and material")
 
 		box = layout.box()
 		col = box.column(align=True)
@@ -203,6 +242,11 @@ class FastRenamePanel(bpy.types.Panel):
 		col.prop(addon_prefs, "mesh_preffix", text="Preffix")
 		col.prop(addon_prefs, "mesh_name", text="Name")
 		col.prop(addon_prefs, "mesh_suffix", text="Suffix")
+		col.operator("object.rename_mesh", text="Rename mesh")
+
+		row = box.row(align=True)
+		row.operator("object.add_preffix", text="Add preffix")
+		row.operator("object.add_suffix", text="Add suffix")
 
 		col = layout.column(align=True)
 		col.prop(scene, "name_mat_set", text="Add material")
@@ -214,6 +258,7 @@ class FastRenamePanel(bpy.types.Panel):
 		col.prop(addon_prefs, "mat_preffix", text="Preffix")
 		col.prop(addon_prefs, "mat_name", text="Name")
 		col.prop(addon_prefs, "mat_suffix", text="Suffix")
+		col.operator("object.rename_mat", text="Rename mat")
 		col.enabled = bpy.context.scene.name_mat_set
 
 class UnrealPresetPanel(bpy.types.Panel):
@@ -253,6 +298,8 @@ def register():
 	bpy.utils.register_class(FastRenamePanel)
 	bpy.utils.register_class(UnrealPresetPanel)
 	bpy.utils.register_class(OBJECT_OT_rename)
+	bpy.utils.register_class(OBJECT_OT_rename_mesh)
+	bpy.utils.register_class(OBJECT_OT_rename_mat)
 	bpy.utils.register_class(OBJECT_OT_add_suffix)
 	bpy.utils.register_class(OBJECT_OT_add_preffix)
 	bpy.utils.register_class(OBJECT_OT_unreal_preset)
@@ -263,6 +310,8 @@ def unregister():
 	bpy.utils.unregister_class(FastRenamePanel)
 	bpy.utils.unregister_class(UnrealPresetPanel)
 	bpy.utils.unregister_class(OBJECT_OT_rename)
+	bpy.utils.unregister_class(OBJECT_OT_rename_mesh)
+	bpy.utils.unregister_class(OBJECT_OT_rename_mat)
 	bpy.utils.unregister_class(OBJECT_OT_add_suffix)
 	bpy.utils.unregister_class(OBJECT_OT_add_preffix)
 	bpy.utils.unregister_class(OBJECT_OT_unreal_preset)
