@@ -111,7 +111,6 @@ class ExampleAddonPreferences(bpy.types.AddonPreferences):
 		col.prop(self, "mat_name")
 		col.prop(self, "mat_suffix")
 
-#class init rename
 class OBJECT_OT_rename(bpy.types.Operator):
 	"""Fast rename meshes"""
 	bl_label = "Fast rename meshes"
@@ -129,7 +128,6 @@ class OBJECT_OT_rename(bpy.types.Operator):
 		rename(addon_prefs)
 		return {'FINISHED'}
 
-#class init add suffix
 class OBJECT_OT_add_suffix(bpy.types.Operator):
 	"""Add suffix to name object"""
 	bl_label = "Add suffix to name object"
@@ -147,7 +145,6 @@ class OBJECT_OT_add_suffix(bpy.types.Operator):
 		add_suffix(addon_prefs)
 		return {'FINISHED'}
 
-#class init add preffix
 class OBJECT_OT_add_preffix(bpy.types.Operator):
 	"""Add preffix to name object"""
 	bl_label = "Add preffix to name object"
@@ -236,7 +233,6 @@ class UnrealPresetPanel(bpy.types.Panel):
 		col = layout.column()
 		col.operator("object.unreal_preset", text="Unreal preset")
 
-#class init unreal preset
 class OBJECT_OT_unreal_preset(bpy.types.Operator):
 	"""Fast rename meshes"""
 	bl_label = "Unreal preset"
