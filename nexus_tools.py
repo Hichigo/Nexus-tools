@@ -5,7 +5,7 @@ bl_info = {
 	"version": (0,1,1),
 	"blender": (2,78),
 	"location": "T > Nexus Tools",
-	"description": "Explode meshes",
+	"description": "Tools",
 	"warning": "",
 	"wiki_url": "None",
 	"category": "Mesh"
@@ -16,75 +16,19 @@ from math import fabs, sqrt
 import mathutils
 from bpy.props import *
 
-
-def explode():
-	x = bpy.context.scene.explode_distance[0]
-	y = bpy.context.scene.explode_distance[1]
-	z = bpy.context.scene.explode_distance[2]
-	for ob in bpy.data.objects:
+def uv_create_to_selected():
+	for ob in bpy.context.selected_objects:
 		if ob.type == "MESH":
-			pos = ob.location
+			bpy.context.scene.objects.active = ob
+			#create and rename uv
+			bpy.ops.mesh.uv_texture_add()
+			bpy.context.scene.objects.active.data.uv_layers[0].name = 'UV_Main'
+			bpy.ops.mesh.uv_texture_add()
+			bpy.context.scene.objects.active.data.uv_layers[1].name = 'UV_Lightpack'
 
-			if pos.x > bpy.context.scene.cursor_location.x:
-				pos.x += x * ob.offsetK[0]
-			else:
-				pos.x -= x * ob.offsetK[0]
-
-			if pos.y > bpy.context.scene.cursor_location.y:
-				pos.y += y * ob.offsetK[1]
-			else:
-				pos.y -= y * ob.offsetK[1]
-
-			if pos.z > bpy.context.scene.cursor_location.z:
-				pos.z += z * ob.offsetK[2]
-			else:
-				pos.z -= z * ob.offsetK[2]
-
-def find_center():
-	bpy.ops.object.select_all(action='DESELECT')
-	for ob in bpy.data.objects:
-		if ob.type == "MESH":
-			ob.select = True
-
-	if bpy.context.scene.cur_to_center:
-		bpy.ops.view3d.snap_cursor_to_selected()
-
-
-	cur = bpy.context.scene.cursor_location
-	cursorX = cur.x
-	cursorY = cur.y
-	cursorZ = cur.z
-	# curLen = sqrt(cursorX*cursorX+cursorY*cursorY+cursorZ*cursorZ)
-
-	for ob in bpy.data.objects:
-		if ob.type == "MESH":
-			ob.normal_location = ob.location
-			ob.offset = ob.location - cur
-			# obLen = sqrt(ob.location.x*ob.location.x+ \
-			# 						 ob.location.y*ob.location.y+ \
-			# 						 ob.location.z*ob.location.z)
-
-
-			if fabs(ob.location.x) > fabs(cursorX): #???
-				ob.offsetK[0] = fabs(ob.location.x / cursorX)
-			else:
-				ob.offsetK[0] = fabs(cursorX / ob.location.x)
-
-			if fabs(ob.location.y) > fabs(cursorY): #???
-				ob.offsetK[1] = fabs(ob.location.y / cursorY)
-			else:
-				ob.offsetK[1] = fabs(cursorY / ob.location.y)
-
-			if fabs(ob.location.z) > fabs(cursorZ): #???
-				ob.offsetK[2] = fabs(ob.location.z / cursorZ)
-			else:
-				ob.offsetK[2] = fabs(cursorZ / ob.location.z)
-
-
-def return_pos():
-	for ob in bpy.data.objects:
-		if ob.type == "MESH":
-			ob.location.xyz = ob.normal_location
+def rename_object_to_selected():
+	for ob in bpy.context.selected_objects:
+		ob.name = "SM_Mesh"
 
 def rename(addon_prefs):
 	selected_objects = bpy.context.selected_objects
@@ -121,8 +65,6 @@ def add_preffix(addon_prefs):
 		temp_name = selected_objects[i].name
 		temp_name = "{}{}".format(addon_prefs.mesh_preffix, temp_name)
 		selected_objects[i].name = temp_name
-
-
 
 class ExampleAddonPreferences(bpy.types.AddonPreferences):
 	# this must match the addon name, use '__package__'
@@ -168,87 +110,6 @@ class ExampleAddonPreferences(bpy.types.AddonPreferences):
 		col.prop(self, "mat_preffix")
 		col.prop(self, "mat_name")
 		col.prop(self, "mat_suffix")
-
-
-#class find center
-class OBJECT_OT_find_center(bpy.types.Operator):
-	"""Find center and remember normal location objects"""
-	bl_label = "Find center and remember normal location objects"
-	bl_idname = "object.find_center"
-	bl_options = {'REGISTER', 'UNDO'}
-
-	cur_to_center = bpy.types.Scene.cur_to_center = BoolProperty(
-		name = "cur_to_center",
-		default = True,
-		description = "Translate 3d cursor to center objects"
-	)
-	offset = bpy.types.Object.offset = FloatVectorProperty(
-		name = "offset",
-		default = (0.0, 0.0, 0.0),
-		subtype = "XYZ",
-		description = "Vector direction from cursor pointer to object"
-	)
-	@classmethod
-	def poll(cls, context):
-		return context.mode == "OBJECT"
-
-	def invoke(self, context, event):
-		find_center()
-
-		return {'FINISHED'}
-
-#class return position objects
-class OBJECT_OT_return_pos(bpy.types.Operator):
-	"""Return object location to normal location"""
-	bl_label = "Return object location to normal location"
-	bl_idname = "object.return_pos"
-	bl_options = {'REGISTER', 'UNDO'}
-
-	normal_location = bpy.types.Object.normal_location = FloatVectorProperty(
-		name = "normal_location",
-		default = (0.0, 0.0, 0.0),
-		description = "normal location before explode"
-	)
-
-	offsetK = bpy.types.Object.offsetK = FloatVectorProperty(
-		name = "offsetK",
-		min = 1.0,
-		default = (0.0, 0.0, 0.0),
-		description = "coefficient offset object"
-		# update = return_pos
-	)
-
-	@classmethod
-	def poll(cls, context):
-		return context.mode == "OBJECT"
-
-	def invoke(self, context, event):
-		return_pos()
-
-		return {'FINISHED'}
-
-#class init explode
-class OBJECT_OT_explode(bpy.types.Operator):
-	"""Calculate explode meshes"""
-	bl_label = "Calculate explode meshes"
-	bl_idname = "object.explode"
-	bl_options = {'REGISTER', 'UNDO'}
-
-	explode_distance = bpy.types.Scene.explode_distance = FloatVectorProperty(
-		name = "explode_distance",
-		min = 0.0,
-		default = (0.0, 0.0, 0.0),
-		subtype = "XYZ",
-		description = "distance from center of objects"
-	)
-
-	@classmethod
-	def poll(cls, context):
-		return context.mode == "OBJECT"
-
-	def invoke(self, context, event):
-		explode()
-		return {'FINISHED'}
 
 #class init rename
 class OBJECT_OT_rename(bpy.types.Operator):
@@ -304,35 +165,6 @@ class OBJECT_OT_add_preffix(bpy.types.Operator):
 		add_preffix(addon_prefs)
 		return {'FINISHED'}
 
-#class panel
-class ExplodeObjectsPanel(bpy.types.Panel):
-	"""Creates a Panel in the view3d context of the tools panel (key "T")"""
-	bl_label = "Explode object"
-	bl_idname = "explodeobjectsid"
-	bl_space_type = 'VIEW_3D'
-	bl_region_type = 'TOOLS'
-	bl_category = "Nexus Tools"
-	bl_context = "objectmode"
-
-	def draw(self, context):
-		layout = self.layout
-		obj = context.object
-		scene = context.scene
-
-		col = layout.column(align=True)
-		col.operator("object.find_center", text="Find center")
-		col.prop(scene, "cur_to_center", text="Cursor to center")
-
-		box = layout.box()
-		box.prop(scene, "explode_distance", text="Explode distance")
-
-		col = layout.column(align=True)
-		col.operator("object.explode", text="Explode objects")
-		col.operator("object.return_pos", text="Return objects")
-
-		box = layout.box()
-		box.prop(obj, "offset", text="Offset")
-
 class FastRenamePanel(bpy.types.Panel):
 	"""Creates a Panel in the view3d context of the tools panel (key "T")"""
 	bl_label = "Fast rename"
@@ -387,27 +219,57 @@ class FastRenamePanel(bpy.types.Panel):
 		col.prop(addon_prefs, "mat_suffix", text="Suffix")
 		col.enabled = bpy.context.scene.name_mat_set
 
+class UnrealPresetPanel(bpy.types.Panel):
+	"""Creates a Panel in the view3d context of the tools panel (key "T")"""
+	bl_label = "Unreal preset"
+	bl_idname = "unrealpresetid"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'TOOLS'
+	bl_category = "Nexus Tools"
+	bl_context = "objectmode"
+
+	def draw(self, context):
+		layout = self.layout
+		obj = context.object
+		scene = context.scene
+
+		col = layout.column()
+		col.operator("object.unreal_preset", text="Unreal preset")
+
+#class init unreal preset
+class OBJECT_OT_unreal_preset(bpy.types.Operator):
+	"""Fast rename meshes"""
+	bl_label = "Unreal preset"
+	bl_idname = "object.unreal_preset"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	@classmethod
+	def poll(cls, context):
+		return context.mode == "OBJECT"
+
+	def execute(self, context):
+		uv_create_to_selected()
+		rename_object_to_selected()
+		return {'FINISHED'}
+
+
 def register():
 	bpy.utils.register_class(FastRenamePanel)
-	bpy.utils.register_class(ExplodeObjectsPanel)
-	bpy.utils.register_class(OBJECT_OT_explode)
-	bpy.utils.register_class(OBJECT_OT_find_center)
+	bpy.utils.register_class(UnrealPresetPanel)
 	bpy.utils.register_class(OBJECT_OT_rename)
 	bpy.utils.register_class(OBJECT_OT_add_suffix)
 	bpy.utils.register_class(OBJECT_OT_add_preffix)
-	bpy.utils.register_class(OBJECT_OT_return_pos)
+	bpy.utils.register_class(OBJECT_OT_unreal_preset)
 	bpy.utils.register_class(ExampleAddonPreferences)
 	# bpy.utils.register_class(ExplodeData)
 
 def unregister():
 	bpy.utils.unregister_class(FastRenamePanel)
-	bpy.utils.unregister_class(ExplodeObjectsPanel)
-	bpy.utils.unregister_class(OBJECT_OT_explode)
-	bpy.utils.unregister_class(OBJECT_OT_find_center)
+	bpy.utils.unregister_class(UnrealPresetPanel)
 	bpy.utils.unregister_class(OBJECT_OT_rename)
 	bpy.utils.unregister_class(OBJECT_OT_add_suffix)
 	bpy.utils.unregister_class(OBJECT_OT_add_preffix)
-	bpy.utils.unregister_class(OBJECT_OT_return_pos)
+	bpy.utils.unregister_class(OBJECT_OT_unreal_preset)
 	bpy.utils.unregister_class(ExampleAddonPreferences)
 	# bpy.utils.unregister_class(ExplodeData)
 
