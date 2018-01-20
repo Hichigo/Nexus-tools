@@ -317,9 +317,10 @@ class ChangeMaterial(bpy.types.Panel):
 
 		col = layout.column()
 		col.operator("object.change_mat", text="Change materials")
+		col.operator("object.del_dulpi_mat", text="Delete materials")
 
 class OBJECT_OT_change_mat(bpy.types.Operator):
-	"""Fast rename meshes"""
+	"""Change materials on active objects by template: NameMat.something"""
 	bl_label = "Change materials"
 	bl_idname = "object.change_mat"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -329,7 +330,7 @@ class OBJECT_OT_change_mat(bpy.types.Operator):
 		return context.mode == "OBJECT"
 
 	def execute(self, context):
-		for ob in bpy.context.selectable_objects:
+		for ob in bpy.context.selected_objects:
 			i = 0
 			for mat in ob.data.materials:
 				if (len(mat.name.split('.')) > 1):
@@ -337,13 +338,25 @@ class OBJECT_OT_change_mat(bpy.types.Operator):
 					if mainMat != False:
 						ob.data.materials[i] = mainMat
 				i += 1
-					
+
+		return {'FINISHED'}
+
+class OBJECT_OT_delete_duplicate_mat(bpy.types.Operator):
+	"""Delete duplicate materials by template from ALL list material: NameMat.something"""
+	bl_label = "Delete materials"
+	bl_idname = "object.del_dulpi_mat"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	@classmethod
+	def poll(cls, context):
+		return context.mode == "OBJECT"
+
+	def execute(self, context):
 		for mat in bpy.data.materials:
 			if len(mat.name.split('.')) > 1:
 				bpy.data.materials.remove(mat)
 
 		return {'FINISHED'}
-
 
 def register():
 	bpy.utils.register_class(FastRenamePanel)
@@ -357,6 +370,7 @@ def register():
 	bpy.utils.register_class(ExampleAddonPreferences)
 	bpy.utils.register_class(ChangeMaterial)
 	bpy.utils.register_class(OBJECT_OT_change_mat)
+	bpy.utils.register_class(OBJECT_OT_delete_duplicate_mat)
 	# bpy.utils.register_class(ExplodeData)
 
 def unregister():
@@ -371,6 +385,7 @@ def unregister():
 	bpy.utils.unregister_class(ExampleAddonPreferences)
 	bpy.utils.unregister_class(ChangeMaterial)
 	bpy.utils.unregister_class(OBJECT_OT_change_mat)
+	bpy.utils.unregister_class(OBJECT_OT_delete_duplicate_mat)
 	# bpy.utils.unregister_class(ExplodeData)
 
 if __name__ == "__main__":
