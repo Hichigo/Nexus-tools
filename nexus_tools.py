@@ -2,8 +2,8 @@
 bl_info = {
 	"name": "Nexus tools",
 	"author": "Nexus Studio",
-	"version": (0,1,1),
-	"blender": (2,78),
+	"version": (0,1,2),
+	"blender": (2,79),
 	"location": "T > Nexus Tools",
 	"description": "Tools",
 	"warning": "",
@@ -67,13 +67,21 @@ def add_suffix(addon_prefs):
 		temp_name = "{}{}".format(temp_name, addon_prefs.mesh_suffix)
 		selected_objects[i].name = temp_name
 
-
 def add_preffix(addon_prefs):
 	selected_objects = bpy.context.selected_objects
 	for i in range( len( selected_objects ) ):
 		temp_name = selected_objects[i].name
 		temp_name = "{}{}".format(addon_prefs.mesh_preffix, temp_name)
 		selected_objects[i].name = temp_name
+
+
+def GetMaterialByName(name):
+	for mat in bpy.data.materials:
+		if mat.name == name:
+			return mat
+	return False
+
+
 
 class ExampleAddonPreferences(bpy.types.AddonPreferences):
 	# this must match the addon name, use '__package__'
@@ -293,6 +301,49 @@ class OBJECT_OT_unreal_preset(bpy.types.Operator):
 		rename_object_to_selected()
 		return {'FINISHED'}
 
+class ChangeMaterial(bpy.types.Panel):
+	"""Creates a Panel in the view3d context of the tools panel (key "T")"""
+	bl_label = "Change materials"
+	bl_idname = "changematid"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'TOOLS'
+	bl_category = "Nexus Tools"
+	bl_context = "objectmode"
+
+	def draw(self, context):
+		layout = self.layout
+		obj = context.object
+		scene = context.scene
+
+		col = layout.column()
+		col.operator("object.change_mat", text="Change materials")
+
+class OBJECT_OT_change_mat(bpy.types.Operator):
+	"""Fast rename meshes"""
+	bl_label = "Change materials"
+	bl_idname = "object.change_mat"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	@classmethod
+	def poll(cls, context):
+		return context.mode == "OBJECT"
+
+	def execute(self, context):
+		for ob in bpy.context.selectable_objects:
+			i = 0
+			for mat in ob.data.materials:
+				if (len(mat.name.split('.')) > 1):
+					mainMat = GetMaterialByName(mat.name.split('.')[0])
+					if mainMat != False:
+						ob.data.materials[i] = mainMat
+				i += 1
+					
+		for mat in bpy.data.materials:
+			if len(mat.name.split('.')) > 1:
+				bpy.data.materials.remove(mat)
+
+		return {'FINISHED'}
+
 
 def register():
 	bpy.utils.register_class(FastRenamePanel)
@@ -304,6 +355,8 @@ def register():
 	bpy.utils.register_class(OBJECT_OT_add_preffix)
 	bpy.utils.register_class(OBJECT_OT_unreal_preset)
 	bpy.utils.register_class(ExampleAddonPreferences)
+	bpy.utils.register_class(ChangeMaterial)
+	bpy.utils.register_class(OBJECT_OT_change_mat)
 	# bpy.utils.register_class(ExplodeData)
 
 def unregister():
@@ -316,6 +369,8 @@ def unregister():
 	bpy.utils.unregister_class(OBJECT_OT_add_preffix)
 	bpy.utils.unregister_class(OBJECT_OT_unreal_preset)
 	bpy.utils.unregister_class(ExampleAddonPreferences)
+	bpy.utils.unregister_class(ChangeMaterial)
+	bpy.utils.unregister_class(OBJECT_OT_change_mat)
 	# bpy.utils.unregister_class(ExplodeData)
 
 if __name__ == "__main__":
