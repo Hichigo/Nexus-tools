@@ -15,6 +15,24 @@ import bpy
 from math import fabs, sqrt
 import mathutils
 from bpy.props import *
+from bpy_extras.io_utils import ImportHelper
+from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.types import Operator
+
+def read_blend_data(context, filepath, use_some_setting):
+	print("running read_blend_data...")
+	# TODO
+	with bpy.data.libraries.load(filepath) as (data_from, data_to):
+		data_to.objects = data_from.objects
+
+	for ob in data_to.objects:
+		print(ob.name)
+
+	# would normally load the data here
+	# print(data)
+
+	return {'FINISHED'}
+
 
 def uv_create_to_selected():
 	for ob in bpy.context.selected_objects:
@@ -81,6 +99,44 @@ def GetMaterialByName(name):
 			return mat
 	return False
 
+
+
+class ImportBlendData(Operator, ImportHelper):
+	"""This appears in the tooltip of the operator and in the generated docs"""
+	bl_idname = "import_blend.blend_data"  # important since its how bpy.ops.import_blend.blend_data is constructed
+	bl_label = "Import Blend Data"
+
+	# ImportHelper mixin class uses this
+	filename_ext = ".blend" # remove?
+
+	filter_glob = StringProperty(
+					default="*.blend",
+					options={'HIDDEN'},
+					maxlen=255,  # Max internal buffer length, longer would be clamped.
+					)
+
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+	use_setting = BoolProperty(
+					name="Example Boolean",
+					description="Example Tooltip",
+					default=True,
+					)
+
+	type = EnumProperty(
+					name="Example Enum",
+					description="Choose between two items",
+					items=(('OPT_A', "First Option", "Description one"),
+								 ('OPT_B', "Second Option", "Description two")),
+					default='OPT_A',
+					)
+
+	def execute(self, context):
+			return read_blend_data(context, self.filepath, self.use_setting)
+
+# Only needed if you want to add into a dynamic menu
+def menu_func_import(self, context):
+	self.layout.operator(ImportBlendData.bl_idname, text="Blend (.blend)")
 
 
 class ExampleAddonPreferences(bpy.types.AddonPreferences):
@@ -371,6 +427,8 @@ def register():
 	bpy.utils.register_class(ChangeMaterial)
 	bpy.utils.register_class(OBJECT_OT_change_mat)
 	bpy.utils.register_class(OBJECT_OT_delete_duplicate_mat)
+	bpy.utils.register_class(ImportBlendData)
+	bpy.types.INFO_MT_file_import.append(menu_func_import)
 	# bpy.utils.register_class(ExplodeData)
 
 def unregister():
@@ -386,6 +444,8 @@ def unregister():
 	bpy.utils.unregister_class(ChangeMaterial)
 	bpy.utils.unregister_class(OBJECT_OT_change_mat)
 	bpy.utils.unregister_class(OBJECT_OT_delete_duplicate_mat)
+	bpy.utils.unregister_class(ImportBlendData)
+	bpy.types.INFO_MT_file_import.remove(menu_func_import)
 	# bpy.utils.unregister_class(ExplodeData)
 
 if __name__ == "__main__":
