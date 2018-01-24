@@ -136,7 +136,7 @@ class ImportBlendData(Operator, ImportHelper):
 
 # Only needed if you want to add into a dynamic menu
 def menu_func_import(self, context):
-	self.layout.operator(ImportBlendData.bl_idname, text="Blend (.blend)")
+	self.layout.operator(ImportBlendData.bl_idname, text="Blend (.blend)", icon="FILE_BLEND")
 
 
 class ExampleAddonPreferences(bpy.types.AddonPreferences):
