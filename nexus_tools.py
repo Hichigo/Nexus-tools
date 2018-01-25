@@ -22,6 +22,7 @@ from bpy.types import Operator
 def read_blend_data(context, filepath, use_setting):
 	print("running read_blend_data...")
 	# TODO
+	# HELP LINK MAY BE http://blenderscripting.blogspot.ru/2012/06/scripted-import-of-materials-from-blend.html
 	
 
 	if use_setting.category == "OBJECTS":
