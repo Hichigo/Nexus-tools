@@ -19,7 +19,7 @@ from bpy_extras.io_utils import ImportHelper
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy.types import Operator
 
-def read_blend_data(context, filepath, use_some_setting):
+def read_blend_data(context, filepath, use_setting):
 	print("running read_blend_data...")
 	# TODO
 	with bpy.data.libraries.load(filepath) as (data_from, data_to):
@@ -28,6 +28,8 @@ def read_blend_data(context, filepath, use_some_setting):
 	for ob in data_to.objects:
 		print(ob.name)
 
+	print(use_setting.replace)
+	print(use_setting.category)
 	# would normally load the data here
 	# print(data)
 
@@ -117,22 +119,24 @@ class ImportBlendData(Operator, ImportHelper):
 
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
-	use_setting = BoolProperty(
-					name="Example Boolean",
-					description="Example Tooltip",
+	
+
+	replace = BoolProperty(
+					name="Replace",
+					description="Replace objects or meshes etc. by name",
 					default=True,
 					)
 
-	type = EnumProperty(
-					name="Example Enum",
+	category = EnumProperty(
+					name="Category",
 					description="Choose between two items",
-					items=(('OPT_A', "First Option", "Description one"),
-								 ('OPT_B', "Second Option", "Description two")),
-					default='OPT_A',
+					items=(('OBJECTS', "Objects", "Get all objects data"),
+								 ('MESHES', "Meshes", "Get all meshes data")),
+					default='OBJECTS',
 					)
 
 	def execute(self, context):
-			return read_blend_data(context, self.filepath, self.use_setting)
+		return read_blend_data(context, self.filepath, self)
 
 # Only needed if you want to add into a dynamic menu
 def menu_func_import(self, context):
