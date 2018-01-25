@@ -22,11 +22,19 @@ from bpy.types import Operator
 def read_blend_data(context, filepath, use_setting):
 	print("running read_blend_data...")
 	# TODO
-	with bpy.data.libraries.load(filepath) as (data_from, data_to):
-		data_to.objects = data_from.objects
+	
 
-	for ob in data_to.objects:
-		print(ob.name)
+	if use_setting.category == "OBJECTS":
+		with bpy.data.libraries.load(filepath) as (data_from, data_to):
+			data_to.objects = data_from.objects
+		for ob in data_to.objects:
+			print(ob.name)
+
+	elif use_setting.category == "MESHES":
+		with bpy.data.libraries.load(filepath) as (data_from, data_to):
+			data_to.meshes = data_from.meshes
+		for mesh in data_to.meshes:
+			print(mesh.name)
 
 	print(use_setting.replace)
 	print(use_setting.category)
