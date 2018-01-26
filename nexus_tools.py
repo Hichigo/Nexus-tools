@@ -28,13 +28,19 @@ def read_blend_data(context, filepath, use_setting):
 	if use_setting.category == "OBJECTS":
 		with bpy.data.libraries.load(filepath) as (data_from, data_to):
 			data_to.objects = data_from.objects
-		for ob in data_to.objects:
-			print(ob.name.split('.')[0])
-			for sceneOb in bpy.context.selectable_objects:
-				if sceneOb.type == "MESH":
-					obName = ob.name.split('.')[0]
-					if sceneOb.name.split('.')[0] == obName:
-						sceneOb.data = ob.data
+		
+		if use_setting.replaceOb:
+			for ob in data_to.objects:
+				print(ob.name.split('.')[0])
+				for sceneOb in bpy.context.selectable_objects:
+					if sceneOb.type == "MESH":
+						obName = ob.name.split('.')[0]
+						if sceneOb.name.split('.')[0] == obName:
+							sceneOb.data = ob.data
+		else:
+			sc = bpy.context.scene
+			for ob in data_to.objects:
+				sc.objects.link(ob)
 
 	elif use_setting.category == "MESHES":
 		with bpy.data.libraries.load(filepath) as (data_from, data_to):
@@ -42,7 +48,7 @@ def read_blend_data(context, filepath, use_setting):
 		for mesh in data_to.meshes:
 			print(mesh.name)
 
-	print(use_setting.replace)
+	print(use_setting.replaceOb)
 	print(use_setting.category)
 	# would normally load the data here
 	# print(data)
@@ -135,8 +141,14 @@ class ImportBlendData(Operator, ImportHelper):
 	# to the class instance from the operator settings before calling.
 	
 
-	replace = BoolProperty(
-					name="Replace",
+	replaceOb = BoolProperty(
+					name="Replace Objects",
+					description="Replace objects or meshes etc. by name",
+					default=True,
+					)
+
+	replaceMat = BoolProperty(
+					name="Replace Objects",
 					description="Replace objects or meshes etc. by name",
 					default=True,
 					)
