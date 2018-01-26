@@ -29,7 +29,12 @@ def read_blend_data(context, filepath, use_setting):
 		with bpy.data.libraries.load(filepath) as (data_from, data_to):
 			data_to.objects = data_from.objects
 		for ob in data_to.objects:
-			print(ob.name)
+			print(ob.name.split('.')[0])
+			for sceneOb in bpy.context.selectable_objects:
+				if sceneOb.type == "MESH":
+					obName = ob.name.split('.')[0]
+					if sceneOb.name.split('.')[0] == obName:
+						sceneOb.data = ob.data
 
 	elif use_setting.category == "MESHES":
 		with bpy.data.libraries.load(filepath) as (data_from, data_to):
