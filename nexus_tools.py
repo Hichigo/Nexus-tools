@@ -37,7 +37,13 @@ def read_blend_data(context, filepath, use_setting):
 						obName = ob.name.split('.')[0]
 						if sceneOb.name.split('.')[0] == obName:
 							sceneOb.data = ob.data
+							if use_setting.replaceMat:
+								ChangeMaterials(sceneOb)
+			if use_setting.removeMat:
+				RemoveMaterials()
+
 		else:
+			print("WTF")
 			sc = bpy.context.scene
 			for ob in data_to.objects:
 				sc.objects.link(ob)
@@ -121,7 +127,21 @@ def GetMaterialByName(name):
 			return mat
 	return False
 
+def RemoveMaterials():
+	"""Remove materials by template: NameMat.something"""
+	for mat in bpy.data.materials:
+		if len(mat.name.split('.')) > 1:
+			bpy.data.materials.remove(mat)
 
+def ChangeMaterials(obj):
+	"""Change materials on object by template: NameMat.something"""
+	i = 0
+	for mat in obj.data.materials:
+		if (len(mat.name.split('.')) > 1):
+			mainMat = GetMaterialByName(mat.name.split('.')[0])
+			if mainMat != False:
+				obj.data.materials[i] = mainMat
+		i += 1
 
 class ImportBlendData(Operator, ImportHelper):
 	"""This appears in the tooltip of the operator and in the generated docs"""
@@ -139,19 +159,25 @@ class ImportBlendData(Operator, ImportHelper):
 
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
-	
 
 	replaceOb = BoolProperty(
 					name="Replace Objects",
-					description="Replace objects or meshes etc. by name",
+					description="Replace objects by name",
 					default=True,
 					)
 
 	replaceMat = BoolProperty(
-					name="Replace Objects",
-					description="Replace objects or meshes etc. by name",
-					default=True,
+					name="Replace Materials",
+					description="Replace materials by name",
+					default=False,
 					)
+
+	removeMat = BoolProperty(
+					name="Remove Materials",
+					description="Remove materials by template: NameMat.something",
+					default=False,
+					)
+
 
 	category = EnumProperty(
 					name="Category",
@@ -160,6 +186,53 @@ class ImportBlendData(Operator, ImportHelper):
 								 ('MESHES', "Meshes", "Get all meshes data")),
 					default='OBJECTS',
 					)
+
+	# replaceOb = bpy.types.Scene.replaceOb = BoolProperty(
+	# 				name="Replace Objects",
+	# 				description="Replace objects by name",
+	# 				default=True,
+	# 				)
+
+	# replaceMat = bpy.types.Scene.replaceMat = BoolProperty(
+	# 				name="Replace Materials",
+	# 				description="Replace materials by name",
+	# 				default=False,
+	# 				)
+
+	# removeMat = bpy.types.Scene.removeMat = BoolProperty(
+	# 				name="Remove Materials",
+	# 				description="Remove materials by template: NameMat.something",
+	# 				default=False,
+	# 				)
+
+	# category = bpy.types.Scene.category = EnumProperty(
+	# 				name="Category",
+	# 				description="Choose between two items",
+	# 				items=(('OBJECTS', "Objects", "Get all objects data"),
+	# 							 ('MESHES', "Meshes", "Get all meshes data")),
+	# 				default='OBJECTS',
+	# 				)
+
+	# def draw(self, context):
+	# 	layout = self.layout
+	# 	obj = context.object
+	# 	scene = context.scene
+
+	# 	col = layout.column(align=True)
+	# 	col.prop(scene, "replaceOb")
+
+	# 	col = layout.column(align=True)
+	# 	col.prop(scene, "replaceMat")
+	# 	col.enabled = bpy.context.scene.replaceOb
+
+	# 	col = layout.column(align=True)
+	# 	col.prop(scene, "removeMat")
+	# 	col.enabled = bpy.context.scene.replaceMat
+
+	# 	col = layout.column(align=True)
+	# 	col.prop(scene, "category")
+
+
 
 	def execute(self, context):
 		return read_blend_data(context, self.filepath, self)
@@ -417,13 +490,7 @@ class OBJECT_OT_change_mat(bpy.types.Operator):
 
 	def execute(self, context):
 		for ob in bpy.context.selected_objects:
-			i = 0
-			for mat in ob.data.materials:
-				if (len(mat.name.split('.')) > 1):
-					mainMat = GetMaterialByName(mat.name.split('.')[0])
-					if mainMat != False:
-						ob.data.materials[i] = mainMat
-				i += 1
+			ChangeMaterials(ob)
 
 		return {'FINISHED'}
 
@@ -438,9 +505,7 @@ class OBJECT_OT_delete_duplicate_mat(bpy.types.Operator):
 		return context.mode == "OBJECT"
 
 	def execute(self, context):
-		for mat in bpy.data.materials:
-			if len(mat.name.split('.')) > 1:
-				bpy.data.materials.remove(mat)
+		RemoveMaterials()
 
 		return {'FINISHED'}
 
